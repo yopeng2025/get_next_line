@@ -1,0 +1,6 @@
+Hello
+World
+42 Network
+get_next_line
+gnl
+
