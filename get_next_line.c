@@ -3,21 +3,29 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yopeng <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: yopeng <yopeng@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/21 15:17:00 by yopeng            #+#    #+#             */
-/*   Updated: 2025/05/27 19:02:40 by yopeng           ###   ########.fr       */
+/*   Updated: 2025/09/05 15:56:38 by yopeng           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "libft.h"
+
+char	*gnl_ft_strjoin(char *s1, char *s2);
 
 static char	*free_and_null(char **p1, char **p2)
 {
 	if (p1 && *p1)
+	{
 		free (*p1);
+		*p1 = NULL;
+	}
 	if (p2 && *p2)
+	{
 		free (*p2);
+		*p2 = NULL;
+	}
 	return (NULL);
 }
 
@@ -32,7 +40,7 @@ static char	*read_until_newline(int fd, char *stash)
 		if (!stash)
 			return (NULL);
 	}
-	buf = malloc(BUFFER_SIZE + 1 * sizeof(char));
+	buf = malloc((BUFFER_SIZE + 1) * sizeof(char));
 	if (!buf)
 		return (NULL);
 	bytes_read = 1;
@@ -42,7 +50,7 @@ static char	*read_until_newline(int fd, char *stash)
 		if (bytes_read == -1)
 			return (free_and_null(&buf, &stash));
 		buf[bytes_read] = '\0';
-		stash = ft_strjoin(stash, buf);
+		stash = gnl_ft_strjoin(stash, buf);
 		if (!stash)
 			return (free_and_null(&buf, NULL));
 	}
@@ -95,6 +103,12 @@ char	*get_next_line(int fd)
 	static char	*stash;
 	char		*line;
 
+	if (fd == -1)//flush
+	{
+		free(stash);
+		stash = NULL;
+		return (NULL);
+	}
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	stash = read_until_newline(fd, stash);
@@ -110,3 +124,5 @@ char	*get_next_line(int fd)
 	stash = update_stash(stash);
 	return (line);
 }
+/*如果gnl的静态缓存（stash）没有被“下一次调用”清掉，导致的1 byte still reachable，*/
+/*在free_exit函数中调用get_next_line(-1)，及时清理掉stash*/
